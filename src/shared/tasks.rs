@@ -3,13 +3,23 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 use async_trait::async_trait;
 
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskWrapper {
+    pub id: Uuid,
+    pub task_type: TaskType,
+    pub retry_count: u32,
+    pub created_at: DateTime<Utc>,
+}
+
 #[async_trait]
 pub trait Task: Serialize + for<'de> Deserialize<'de> {
     async fn process(self) -> Result<()>;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum TaskType {
     #[serde(rename = "email")]
     Email(EmailTask),
@@ -32,7 +42,7 @@ impl From<EmailTask> for TaskType {
 }
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EmailTask {
     pub email: String,
     pub subject: String,
